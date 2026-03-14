@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AV Control Center</title>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel (Compile JSX on the fly) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Socket.IO -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Styles -->
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-panel: #1e1e1e;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent-color: #00adb5;
+            --danger-color: #ff3b30;
+            --border-radius: 8px;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
+        .dashboard-header {
+            text-align: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 15px;
+        }
+        
+        .status-badge {
+            display: inline-block; padding: 5px 10px; border-radius: 12px; font-size: 0.85rem;
+            font-weight: bold; margin-top: 10px;
+        }
+        .status-connected { background: #4caf50; color: #fff; }
+        .status-disconnected { background: #f44336; color: #fff; }
+
+        .dashboard-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px;
+        }
+
+        .module-panel {
+            background: var(--bg-panel); border-radius: var(--border-radius); padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .module-panel h2 {
+            font-size: 1.2rem; margin-top: 0; margin-bottom: 15px; color: var(--text-muted);
+            border-bottom: 1px solid #333; padding-bottom: 10px;
+        }
+
+        /* Radio Buttons */
+        .radio-group { display: flex; flex-direction: column; gap: 10px; }
+        .btn-radio {
+            background: #2a2a2a; color: #fff; border: 1px solid #444; padding: 12px;
+            border-radius: var(--border-radius); cursor: pointer; font-size: 1rem; transition: all 0.2s;
+        }
+        .btn-radio:hover { background: #3a3a3a; }
+        .btn-radio:active { transform: scale(0.98); }
+
+        /* Buttons Grid */
+        .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+        .btn-action {
+            background: #2c3e50; color: #fff; border: none; padding: 15px 10px;
+            border-radius: var(--border-radius); cursor: pointer; font-weight: 600; transition: background 0.2s;
+        }
+        .btn-action:hover { background: #34495e; }
+        .btn-action:active { background: var(--accent-color); transform: scale(0.95); }
+
+        .btn-flash {
+            background: #7f8c8d; color: #fff; border: none; padding: 20px 10px;
+            border-radius: var(--border-radius); cursor: pointer; font-weight: bold; font-size: 1.1rem;
+            transition: background 0.1s;
+        }
+        .btn-flash:active { background: #e74c3c; transform: scale(0.95); }
+
+        /* Toggle Switch */
+        .toggle-container { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+        .toggle-label { font-size: 1.1rem; font-weight: 500; }
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #555; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(26px); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const socket = io();
+
+        // Components
+        const AudioControl = ({ onSelectPreset }) => {
+            const presets = [
+                { id: 'electro', label: 'Electrónica' },
+                { id: 'reggaeton', label: 'Reggaetón' },
+                { id: 'pop', label: 'Pop / Comercial' },
+                { id: 'rock', label: 'Rock / En Vivo' }
+            ];
+            return (
+                <div className="module-panel">
+                    <h2>🎵 Control de Audio (Presets)</h2>
+                    <div className="radio-group">
+                        {presets.map(p => (
+                            <button key={p.id} className="btn-radio" onClick={() => onSelectPreset(p.id)}>{p.label}</button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const AutomationControl = ({ isEnabled, onToggle }) => (
+            <div className="module-panel">
+                <h2>🤖 Control de Automatización</h2>
+                <div className="toggle-container">
+                    <span className="toggle-label">Estrobos Automáticos</span>
+                    <label className="switch">
+                        <input type="checkbox" checked={isEnabled} onChange={e => onToggle(e.target.checked)} />
+                        <span className="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        );
+
+        const DirectButtons = ({ onDirectCommand }) => {
+            // Generamos dinámicamente los comandos GQL 1 a 10
+            const cmds = Array.from({ length: 10 }, (_, i) => ({
+                label: `Onyx Play Cue ${i + 1}`,
+                command: `GQL ${i + 1}`
+            }));
+            
+            // Añadimos el Stop All al final
+            cmds.push({ label: 'Onyx Stop All', command: 'RQL 0' });
+
+            return (
+                <div className="module-panel">
+                    <h2>🎯 Botonera Directa (Onyx)</h2>
+                    <div className="btn-grid">
+                        {cmds.map((c, i) => (
+                            <button key={i} className="btn-action" onClick={() => onDirectCommand(c.command)}>{c.label}</button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const FlashButtons = ({ onFlashDown, onFlashUp }) => {
+            const cmds = [
+                { label: 'Flash Blanco', command: '11' },
+                { label: 'Flash Rojo', command: '12' },
+                { label: 'Cegadoras', command: '13' }
+            ];
+            return (
+                <div className="module-panel">
+                    <h2>⚡ Botones Flash</h2>
+                    <div className="btn-grid">
+                        {cmds.map((c, i) => (
+                            <button 
+                                key={i} className="btn-flash"
+                                onMouseDown={() => onFlashDown(`SQL ${c.command},255`)}
+                                onMouseUp={() => onFlashUp(`SQL ${c.command},0`)}
+                                onMouseLeave={() => onFlashUp(`SQL ${c.command},0`)}
+                                onTouchStart={() => onFlashDown(`SQL ${c.command},255`)}
+                                onTouchEnd={() => onFlashUp(`SQL ${c.command},0`)}
+                            >{c.label}</button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [isConnected, setIsConnected] = useState(socket.connected);
+            const [isAutomationEnabled, setIsAutomationEnabled] = useState(true);
+            const [videoColor, setVideoColor] = useState({ r: 0, g: 0, b: 0 });
+
+            useEffect(() => {
+                socket.on('connect', () => setIsConnected(true));
+                socket.on('disconnect', () => setIsConnected(false));
+                socket.on('automation_state', (state) => setIsAutomationEnabled(state));
+                socket.on('video_color', (colorObj) => setVideoColor(colorObj));
+                
+                return () => {
+                    socket.off('connect');
+                    socket.off('disconnect');
+                    socket.off('automation_state');
+                    socket.off('video_color');
+                };
+            }, []);
+
+            return (
+                <div className="dashboard-container">
+                    <header className="dashboard-header">
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px' }}>
+                            <h1>Centro de Control AV</h1>
+                            {/* Indicador de Color de Video */}
+                            <div style={{
+                                width: '40px', 
+                                height: '40px', 
+                                borderRadius: '50%', 
+                                backgroundColor: `rgb(${videoColor.r}, ${videoColor.g}, ${videoColor.b})`,
+                                border: '2px solid #333',
+                                boxShadow: `0 0 15px rgba(${videoColor.r}, ${videoColor.g}, ${videoColor.b}, 0.5)`
+                            }} title="Color Actual del Video (Resolume)"></div>
+                        </div>
+                        <div className={`status-badge ${isConnected ? 'status-connected' : 'status-disconnected'}`}>
+                            {isConnected ? 'Conectado al Backend' : 'Desconectado'}
+                        </div>
+                    </header>
+                    <div className="dashboard-grid">
+                        <AutomationControl 
+                            isEnabled={isAutomationEnabled} 
+                            onToggle={(state) => { setIsAutomationEnabled(state); socket.emit('toggle_automation', state); }} 
+                        />
+                        <AudioControl onSelectPreset={(p) => socket.emit('audio_preset', p)} />
+                    </div>
+                    <div className="dashboard-grid">
+                        <DirectButtons onDirectCommand={(c) => socket.emit('direct_button', c)} />
+                        <FlashButtons 
+                            onFlashDown={(c) => socket.emit('flash_button_down', c)} 
+                            onFlashUp={(c) => socket.emit('flash_button_up', c)} 
+                        />
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

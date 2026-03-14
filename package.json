@@ -1,0 +1,29 @@
+{
+  "name": "loop-av-middleware",
+  "version": "1.0.0",
+  "description": "Middleware AV en tiempo real: OSC + Art-Net + UDP + WebSockets para control de shows en vivo",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test-artnet": "node test-artnet.js"
+  },
+  "keywords": [
+    "artnet",
+    "osc",
+    "dmx",
+    "resolume",
+    "onyx",
+    "lighting",
+    "av",
+    "middleware",
+    "live-events"
+  ],
+  "author": "Julian Osorio <devmaiter>",
+  "license": "MIT",
+  "dependencies": {
+    "dmxnet": "*",
+    "express": "*",
+    "osc": "*",
+    "socket.io": "*"
+  }
+}
