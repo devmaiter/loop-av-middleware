@@ -1,11 +1,14 @@
 {
   "name": "loop-av-middleware",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Middleware AV en tiempo real: OSC + Art-Net + UDP + WebSockets para control de shows en vivo",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "node index.js",
-    "test-artnet": "node test-artnet.js"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node --transpile-only src/index.ts",
+    "test-artnet": "ts-node --transpile-only src/artnet/artnetTester.ts",
+    "lint": "tsc --noEmit"
   },
   "keywords": [
     "artnet",
@@ -16,14 +19,21 @@
     "lighting",
     "av",
     "middleware",
+    "typescript",
     "live-events"
   ],
   "author": "Julian Osorio <devmaiter>",
   "license": "MIT",
   "dependencies": {
-    "dmxnet": "*",
-    "express": "*",
-    "osc": "*",
-    "socket.io": "*"
+    "dmxnet": "^0.5.0",
+    "express": "^4.21.2",
+    "osc": "^2.4.5",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.13.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
   }
 }

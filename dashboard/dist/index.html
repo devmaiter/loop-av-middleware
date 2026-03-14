@@ -78,6 +78,13 @@
         .btn-action:hover { background: #34495e; }
         .btn-action:active { background: var(--accent-color); transform: scale(0.95); }
 
+        .btn-danger {
+            background: var(--danger-color); color: #fff; border: none; padding: 15px 10px;
+            border-radius: var(--border-radius); cursor: pointer; font-weight: bold; transition: background 0.2s;
+        }
+        .btn-danger:hover { background: #ff453a; }
+        .btn-danger:active { transform: scale(0.95); }
+
         .btn-flash {
             background: #7f8c8d; color: #fff; border: none; padding: 20px 10px;
             border-radius: var(--border-radius); cursor: pointer; font-weight: bold; font-size: 1.1rem;
@@ -151,13 +158,22 @@
             
             // Añadimos el Stop All al final
             cmds.push({ label: 'Onyx Stop All', command: 'RQL 0' });
+            
+            // Añadimos el Clear Manual con estilo peligro
+            cmds.push({ label: '⚠️ CLEAR MANUAL', command: 'CLRCLR', isDanger: true });
 
             return (
                 <div className="module-panel">
                     <h2>🎯 Botonera Directa (Onyx)</h2>
                     <div className="btn-grid">
                         {cmds.map((c, i) => (
-                            <button key={i} className="btn-action" onClick={() => onDirectCommand(c.command)}>{c.label}</button>
+                            <button 
+                                key={i} 
+                                className={c.isDanger ? "btn-danger" : "btn-action"} 
+                                onClick={() => onDirectCommand(c.command)}
+                            >
+                                {c.label}
+                            </button>
                         ))}
                     </div>
                 </div>
