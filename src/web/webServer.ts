@@ -19,6 +19,10 @@ type OnyxCommandCallback = (command: string) => void;
 type AudioPresetCallback = (preset: string) => void;
 /** Callback invocado cuando el cliente cambia el estado de automatización */
 type AutomationCallback = (enabled: boolean) => void;
+/** Callback invocado cuando el cliente mutea/desmutea una pista de Reaper */
+type ReaperTrackMuteCallback = (track: number, muted: boolean) => void;
+/** Callback invocado cuando el cliente mutea/desmutea el Master de Reaper */
+type ReaperMasterMuteCallback = (muted: boolean) => void;
 
 export class WebServer {
   private readonly app: express.Application;
@@ -34,6 +38,8 @@ export class WebServer {
   private onAutomationChange?: AutomationCallback;
   private onAudioPreset?: AudioPresetCallback;
   private onOnyxCommand?: OnyxCommandCallback;
+  private onReaperMute?: ReaperTrackMuteCallback;
+  private onReaperMasterMute?: ReaperMasterMuteCallback;
 
   constructor() {
     this.app = express();
@@ -89,6 +95,16 @@ export class WebServer {
         this.onOnyxCommand?.(command);
       });
 
+      socket.on('toggle_track_mute', (track: number, muted: boolean) => {
+        console.log(`\n🎛️  Pista Reaper ${track}: ${muted ? 'SILENCIADA' : 'SONANDO'}`);
+        this.onReaperMute?.(track, muted);
+      });
+
+      socket.on('toggle_master_mute', (muted: boolean) => {
+        console.log(`\n🎚️  Reaper Master: ${muted ? 'SILENCIADO' : 'SONANDO'}`);
+        this.onReaperMasterMute?.(muted);
+      });
+
       socket.on('disconnect', () => {
         console.log(`\n❌ Cliente Web Desconectado: ${socket.id}`);
       });
@@ -101,13 +117,17 @@ export class WebServer {
   onEvent(event: 'automationChange', cb: AutomationCallback): void;
   onEvent(event: 'audioPreset', cb: AudioPresetCallback): void;
   onEvent(event: 'onyxCommand', cb: OnyxCommandCallback): void;
+  onEvent(event: 'reaperMute', cb: ReaperTrackMuteCallback): void;
+  onEvent(event: 'reaperMasterMute', cb: ReaperMasterMuteCallback): void;
   onEvent(
-    event: 'automationChange' | 'audioPreset' | 'onyxCommand',
-    cb: AutomationCallback | AudioPresetCallback | OnyxCommandCallback
+    event: 'automationChange' | 'audioPreset' | 'onyxCommand' | 'reaperMute' | 'reaperMasterMute',
+    cb: AutomationCallback | AudioPresetCallback | OnyxCommandCallback | ReaperTrackMuteCallback | ReaperMasterMuteCallback
   ): void {
     if (event === 'automationChange') this.onAutomationChange = cb as AutomationCallback;
     if (event === 'audioPreset') this.onAudioPreset = cb as AudioPresetCallback;
     if (event === 'onyxCommand') this.onOnyxCommand = cb as OnyxCommandCallback;
+    if (event === 'reaperMute') this.onReaperMute = cb as ReaperTrackMuteCallback;
+    if (event === 'reaperMasterMute') this.onReaperMasterMute = cb as ReaperMasterMuteCallback;
   }
 
   /** Emite un nuevo color a todos los clientes conectados. */

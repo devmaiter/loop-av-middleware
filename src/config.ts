@@ -16,6 +16,15 @@ export const config = {
     port: 8080,
   },
 
+  /** Reaper DAW – OSC control (plugin: "Control surface: OSC (Open Sound Control)") */
+  reaper: {
+    ip: '127.0.0.1',
+    /** Puerto donde Reaper escucha comandos OSC (configurado en Reaper → Preferences → Control Surfaces) */
+    port: 8000,
+    /** Puerto local desde el que este middleware envía (debe ser distinto al del oscServer) */
+    localPort: 7001,
+  },
+
   /** Servidor OSC local (recibe datos desde Resolume Arena) */
   osc: {
     localAddress: '0.0.0.0',

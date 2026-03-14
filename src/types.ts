@@ -48,4 +48,8 @@ export interface ClientToServerEvents {
   direct_button: (command: OnyxCommand) => void;
   flash_button_down: (command: OnyxCommand) => void;
   flash_button_up: (command: OnyxCommand) => void;
+  /** Mutea/desmutea una pista de Reaper. track: 1-indexed, muted: true=silenciada */
+  toggle_track_mute: (track: number, muted: boolean) => void;
+  /** Mutea/desmutea el Master de Reaper */
+  toggle_master_mute: (muted: boolean) => void;
 }

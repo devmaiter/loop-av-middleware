@@ -5,6 +5,7 @@
 import { OnyxSender } from './udp/onyxSender';
 import { AudioSender } from './udp/audioSender';
 import { OscServer } from './osc/oscServer';
+import { ReaperSender } from './osc/reaperSender';
 import { ArtNetReceiver } from './artnet/artnetReceiver';
 import { WebServer } from './web/webServer';
 import { ConsoleInterface } from './cli/consoleInterface';
@@ -18,6 +19,7 @@ let isAutomationEnabled: boolean = true;
 
 const onyxSender    = new OnyxSender();
 const audioSender   = new AudioSender();
+const reaperSender  = new ReaperSender();
 const oscServer     = new OscServer();
 const artnetRx      = new ArtNetReceiver();
 const webServer     = new WebServer();
@@ -64,6 +66,14 @@ webServer.onEvent('onyxCommand', (command: string) => {
   onyxSender.send(command);
 });
 
+webServer.onEvent('reaperMute', (track: number, muted: boolean) => {
+  reaperSender.setTrackMute(track, muted);
+});
+
+webServer.onEvent('reaperMasterMute', (muted: boolean) => {
+  reaperSender.setMasterMute(muted);
+});
+
 // ── Wiring: CLI → Onyx ───────────────────────────────────────
 
 consoleCli.on('clear', () => {
@@ -75,6 +85,7 @@ consoleCli.on('exit', () => {
   console.log('\n👋 Cerrando middleware...');
   // Graceful shutdown
   oscServer.close();
+  reaperSender.close();
   artnetRx.close();
   webServer.close();
   consoleCli.close();

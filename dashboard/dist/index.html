@@ -117,24 +117,35 @@
         const socket = io();
 
         // Components
-        const AudioControl = ({ onSelectPreset }) => {
-            const presets = [
-                { id: 'electro', label: 'Electrónica' },
-                { id: 'reggaeton', label: 'Reggaetón' },
-                { id: 'pop', label: 'Pop / Comercial' },
-                { id: 'rock', label: 'Rock / En Vivo' }
-            ];
-            return (
-                <div className="module-panel">
-                    <h2>🎵 Control de Audio (Presets)</h2>
-                    <div className="radio-group">
-                        {presets.map(p => (
-                            <button key={p.id} className="btn-radio" onClick={() => onSelectPreset(p.id)}>{p.label}</button>
-                        ))}
-                    </div>
+        const ReaperControl = ({ masterMuted, onToggleMaster, track1Muted, onToggleTrack1 }) => (
+            <div className="module-panel">
+                <h2>🎛️ Control Reaper</h2>
+
+                <div className="toggle-container">
+                    <span className="toggle-label">Master</span>
+                    <label className="switch">
+                        <input type="checkbox" checked={!masterMuted} onChange={e => onToggleMaster(!e.target.checked)} />
+                        <span className="slider round"></span>
+                    </label>
                 </div>
-            );
-        };
+                <p style={{ margin: '0 0 12px', fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+                    {masterMuted ? '🔇 Silenciado' : '🔊 Sonando'}
+                </p>
+
+                <div style={{ borderTop: '1px solid #333', paddingTop: '12px' }}>
+                    <div className="toggle-container">
+                        <span className="toggle-label">Pista 1 — Bajos</span>
+                        <label className="switch">
+                            <input type="checkbox" checked={!track1Muted} onChange={e => onToggleTrack1(!e.target.checked)} />
+                            <span className="slider round"></span>
+                        </label>
+                    </div>
+                    <p style={{ margin: '0', fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+                        {track1Muted ? '🔇 Silenciada' : '🔊 Sonando'}
+                    </p>
+                </div>
+            </div>
+        );
 
         const AutomationControl = ({ isEnabled, onToggle }) => (
             <div className="module-panel">
@@ -209,6 +220,8 @@
             const [isConnected, setIsConnected] = useState(socket.connected);
             const [isAutomationEnabled, setIsAutomationEnabled] = useState(true);
             const [videoColor, setVideoColor] = useState({ r: 0, g: 0, b: 0 });
+            const [track1Muted, setTrack1Muted] = useState(false);
+            const [masterMuted, setMasterMuted] = useState(false);
 
             useEffect(() => {
                 socket.on('connect', () => setIsConnected(true));
@@ -248,7 +261,12 @@
                             isEnabled={isAutomationEnabled} 
                             onToggle={(state) => { setIsAutomationEnabled(state); socket.emit('toggle_automation', state); }} 
                         />
-                        <AudioControl onSelectPreset={(p) => socket.emit('audio_preset', p)} />
+                        <ReaperControl
+                            masterMuted={masterMuted}
+                            onToggleMaster={(muted) => { setMasterMuted(muted); socket.emit('toggle_master_mute', muted); }}
+                            track1Muted={track1Muted}
+                            onToggleTrack1={(muted) => { setTrack1Muted(muted); socket.emit('toggle_track_mute', 1, muted); }}
+                        />
                     </div>
                     <div className="dashboard-grid">
                         <DirectButtons onDirectCommand={(c) => socket.emit('direct_button', c)} />
