@@ -52,4 +52,8 @@ export interface ClientToServerEvents {
   toggle_track_mute: (track: number, muted: boolean) => void;
   /** Mutea/desmutea el Master de Reaper */
   toggle_master_mute: (muted: boolean) => void;
+  /** Selecciona una pista de Reaper (momentáneo, track: 1-indexed) */
+  select_reaper_track: (track: number) => void;
+  /** Selecciona el Master de Reaper (momentáneo) */
+  select_reaper_master: () => void;
 }

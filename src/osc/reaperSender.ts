@@ -73,6 +73,23 @@ export class ReaperSender {
     console.log(`🎚️ [Reaper] Master: ${muted ? 'SILENCIADO' : 'SONANDO'}`);
   }
 
+  /**
+   * Selecciona una pista en Reaper (botón momentáneo, no toggle).
+   * @param track - Número de pista (1-indexed)
+   */
+  setTrackSelect(track: number): void {
+    this.send(`/track/${track}/select`, 1);
+    console.log(`🎯 [Reaper] Pista ${track} seleccionada`);
+  }
+
+  /**
+   * Selecciona el Master en Reaper (botón momentáneo).
+   */
+  setMasterSelect(): void {
+    this.send('/master/select', 1);
+    console.log(`🎯 [Reaper] Master seleccionado`);
+  }
+
   /** Cierra el puerto OSC. */
   close(): void {
     this.udpPort.close();

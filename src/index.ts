@@ -74,6 +74,14 @@ webServer.onEvent('reaperMasterMute', (muted: boolean) => {
   reaperSender.setMasterMute(muted);
 });
 
+webServer.onEvent('reaperSelectTrack', (track: number) => {
+  reaperSender.setTrackSelect(track);
+});
+
+webServer.onEvent('reaperSelectMaster', () => {
+  reaperSender.setMasterSelect();
+});
+
 // ── Wiring: CLI → Onyx ───────────────────────────────────────
 
 consoleCli.on('clear', () => {
