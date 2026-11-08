@@ -121,6 +121,7 @@ export function validate(c: Config): Config {
   for (const [name, ip] of [['onyx.ip', c.onyx.ip], ['reaper.ip', c.reaper.ip], ['audio.ip', c.audio.ip]] as const) {
     check(isText(ip), `${name} no puede estar vacío`);
   }
+  check(isText(c.panel.host), 'panel.host no puede estar vacío');
   check(typeof c.panel.pin === 'string', 'panel.pin debe ser texto (vacío para no pedir PIN)');
   check(Number.isInteger(c.onyx.strobeCuelist) && c.onyx.strobeCuelist > 0, 'onyx.strobeCuelist debe ser un número de cuelist');
   check(

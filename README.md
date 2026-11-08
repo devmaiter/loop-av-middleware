@@ -45,7 +45,7 @@ Tablets <──Socket.IO──────>┘   (un .exe)        └──HTTP�
 - **Falla rápido al arrancar y explica por qué:** puerto ocupado o configuración mal escrita.
   Durante el show, un error inesperado cierra el proceso para que el servicio lo reinicie limpio,
   en vez de seguir en un estado desconocido.
-- **Sin frameworks en el panel.** Son unas 200 líneas de JS; React y un paso de compilación no
+- **Sin frameworks en el panel.** Son menos de 200 líneas de JS; React y un paso de compilación no
   aportaban nada y hacían que la página dependiera de internet.
 
 ## Uso

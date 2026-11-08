@@ -6,6 +6,7 @@ import * as dgram from 'dgram';
 import { EventEmitter } from 'events';
 import * as osc from 'osc';
 import type { Config } from '../config';
+import { log } from '../log';
 import { readColor, type RGB } from '../protocols/artnet';
 
 /** Máximo de colores por segundo que se reenvían al panel */
@@ -30,6 +31,9 @@ export class Resolume extends EventEmitter<ResolumeEvents> {
       if (msg.address.endsWith('/opacity') && typeof value === 'number') this.emit('opacity', value);
     });
     this.artnet.on('message', (packet) => this.onArtnet(packet));
+    // osc.js también avisa con 'error' cuando llega un paquete mal formado: se registra y se sigue
+    this.osc.on('error', (err: Error) => log.warn(`Resolume OSC: ${err.message}`));
+    this.artnet.on('error', (err) => log.error(`Resolume Art-Net: ${err.message}`));
   }
 
   /** Abre los dos puertos. Falla si alguno está ocupado. */
