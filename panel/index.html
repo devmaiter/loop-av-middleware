@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111317">
+  <title>Loop · Panel</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Loop</h1>
+    <div class="status">
+      <span class="chip" id="server-status">Conectando…</span>
+      <span class="chip" id="resolume-status">Resolume</span>
+      <span class="swatch" id="video-color" title="Color del video en Resolume"></span>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Luces</h2>
+      <label class="switch-row">
+        <span>Estrobos automáticos <small>siguen la opacidad del video</small></span>
+        <input type="checkbox" id="automation" role="switch">
+      </label>
+      <h3>Escenas</h3>
+      <div class="grid" id="scenes"></div>
+      <h3>Flashes <small>mantener presionado</small></h3>
+      <div class="grid" id="flashes"></div>
+      <div class="grid actions">
+        <button type="button" id="release-all">Soltar todo</button>
+        <button type="button" id="clear-lights" class="danger">Limpiar programador</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Audio</h2>
+      <div id="tracks"></div>
+      <div id="presets-block" hidden>
+        <h3>Presets</h3>
+        <div class="grid" id="presets"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <dialog id="pin-dialog">
+    <form method="dialog" id="pin-form">
+      <h2>PIN del panel</h2>
+      <p id="pin-error" class="error" hidden>PIN incorrecto</p>
+      <input id="pin" type="password" inputmode="numeric" autocomplete="off" required autofocus>
+      <button type="submit">Entrar</button>
+    </form>
+  </dialog>
+
+  <script src="vendor/socket.io.min.js"></script>
+  <script src="panel.js"></script>
+</body>
+</html>
