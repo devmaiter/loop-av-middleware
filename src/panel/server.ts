@@ -31,11 +31,14 @@ const sameText = (a: string, b: string): boolean => {
   return timingSafeEqual(hash(a), hash(b));
 };
 
-/** Cliente de Socket.IO para el navegador, servido localmente (el panel no depende de internet). */
+/**
+ * Cliente de Socket.IO para el navegador, servido localmente (el panel no depende de internet).
+ * En la entrega viene en panel/vendor; en desarrollo se toma de node_modules.
+ */
 function socketIoClientFile(panelDir: string): string {
   const bundled = path.join(panelDir, 'vendor', 'socket.io.min.js');
   if (fs.existsSync(bundled)) return bundled;
-  return path.join(path.dirname(require.resolve('socket.io/package.json')), 'client-dist', 'socket.io.min.js');
+  return path.join(panelDir, '..', 'node_modules', 'socket.io', 'client-dist', 'socket.io.min.js');
 }
 
 export class PanelServer {

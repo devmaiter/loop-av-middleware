@@ -1,0 +1,47 @@
+{
+  "panel": {
+    "port": 3000,
+    "pin": ""
+  },
+  "onyx": {
+    "ip": "192.168.1.20",
+    "port": 3333,
+    "strobeCuelist": 5
+  },
+  "reaper": {
+    "ip": "127.0.0.1",
+    "port": 8000,
+    "tracks": [
+      { "number": 1, "name": "Pista 1" },
+      { "number": 2, "name": "Pista 2" },
+      { "number": 3, "name": "Pista 3" }
+    ]
+  },
+  "audio": {
+    "ip": "127.0.0.1",
+    "port": 8080,
+    "presets": []
+  },
+  "resolume": {
+    "oscPort": 7000,
+    "artnetPort": 6454,
+    "colorChannel": 1
+  },
+  "scenes": [
+    { "name": "Cue 1", "command": "GQL 1" },
+    { "name": "Cue 2", "command": "GQL 2" },
+    { "name": "Cue 3", "command": "GQL 3" },
+    { "name": "Cue 4", "command": "GQL 4" },
+    { "name": "Cue 5", "command": "GQL 5" },
+    { "name": "Cue 6", "command": "GQL 6" },
+    { "name": "Cue 7", "command": "GQL 7" },
+    { "name": "Cue 8", "command": "GQL 8" },
+    { "name": "Cue 9", "command": "GQL 9" },
+    { "name": "Cue 10", "command": "GQL 10" }
+  ],
+  "flashes": [
+    { "name": "Flash blanco", "cuelist": 11 },
+    { "name": "Flash rojo", "cuelist": 12 },
+    { "name": "Cegadoras", "cuelist": 13 }
+  ]
+}

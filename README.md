@@ -1,117 +1,71 @@
-# 🎛️ Loop – AV Middleware Controller
+# Loop
 
-**Loop** es un middleware de control AV en tiempo real desarrollado con **Node.js**. Actúa como puente central entre Resolume Arena, Onyx, sistemas de audio, y un dashboard web de monitoreo. Diseñado para shows en vivo y producción de eventos.
+Integración AV para shows en vivo: une **Resolume Arena** (video), **Onyx** (luces) y **Reaper**
+(audio), y los pone en un panel web que se maneja desde una tablet.
 
----
+Se usó en un bar con shows en vivo y hoy lo usa **Multiaudio** en sus eventos.
 
-## 🚀 Características principales
+## Qué resuelve
 
-- 🎨 **Recepción de color vía Art-Net** – Captura el color de video de Resolume Arena (puerto UDP 6454) y lo emite al dashboard en tiempo real.
-- 💡 **Control de estrobos proporcional vía OSC** – Convierte la opacidad de capas en Resolume (0.0–1.0) a valores DMX (0–255) enviados a Onyx vía UDP.
-- 🌐 **Panel de control web** – Dashboard integrado con WebSockets (Socket.io) para visualización y control remoto.
-- 🎵 **Envío de presets de audio** – Envía comandos UDP a un PC de audio remoto.
-- ⌨️ **Comandos manuales por consola** – Soporte para `clear` y `exit` desde terminal.
+En un club, el video, las luces y el audio suelen estar en programas y PCs distintos, y cada
+cambio necesita un técnico en cada consola. Loop los conecta:
 
----
+- **Los estrobos siguen al video.** La opacidad de una capa de Resolume mueve, en tiempo real,
+  el nivel de una cuelist de Onyx.
+- **El panel muestra el color del video** que Resolume manda por Art-Net, y si está llegando señal.
+- **Una tablet, todo el show:** escenas y flashes de luces, mute y selección de pistas de
+  Reaper y presets de audio, con botones grandes y sin depender de internet.
+- **Varias tablets a la vez** ven el mismo estado.
 
-## 🏗️ Arquitectura
+## Cómo funciona
 
 ```
-Resolume Arena
-    │
-    ├── OSC (puerto 7000) ──────────► Loop Middleware (index.js)
-    │                                        │
-    └── Art-Net DMX (puerto 6454) ──────────►│
-                                             │
-                              ┌──────────────┼──────────────────┐
-                              │              │                  │
-                          Onyx (UDP)   Audio PC (UDP)    Dashboard Web
-                          :3333         :8080            localhost:3000
+Resolume ──OSC (opacidad)──┐                    ┌──UDP──> Onyx
+         ──Art-Net (color)─┤                    ├──OSC──> Reaper
+                           ├──>  Loop  ─────────┼──UDP──> PC de audio
+Tablets <──Socket.IO──────>┘   (un .exe)        └──HTTP─> página del panel
 ```
 
----
+| Carpeta | Qué hay |
+|---|---|
+| `src/show.ts` | Las reglas del show. No sabe de redes: habla con los equipos por interfaces (`Lights`, `Mixer`, `AudioPresets`) |
+| `src/devices/` | Un archivo por equipo: cómo se le habla a Resolume, Onyx, Reaper y al PC de audio |
+| `src/protocols/artnet.ts` | Lectura de paquetes Art-Net |
+| `src/panel/server.ts` | Servidor del panel. Es la frontera con la red: revisa el PIN y cada dato que llega |
+| `src/config.ts` | Carga y valida `loop.config.json` |
+| `panel/` | La página de las tablets (HTML, CSS y JS sin compilar) |
 
-## 📦 Dependencias
+### Decisiones
 
-| Paquete    | Uso                                          |
-|------------|----------------------------------------------|
-| `osc`      | Recepción de mensajes OSC desde Resolume     |
-| `dgram`    | Sockets UDP para Art-Net y envío a Onyx      |
-| `express`  | Servidor HTTP para el dashboard web          |
-| `socket.io`| WebSockets para comunicación en tiempo real  |
-| `dmxnet`   | Librería Art-Net auxiliar                    |
+- **El panel no conoce comandos.** Manda "botón 3" y el servidor decide qué comando sale según
+  la configuración. Así, alguien en el wifi del club no puede mandarle cualquier cosa a Onyx, y
+  agregar un botón es editar el JSON, no el código.
+- **Nada destructivo al arrancar.** Si el PC se reinicia en pleno show, Loop vuelve sin tocar lo
+  que está en escena. Limpiar el programador es un botón que pide un segundo toque.
+- **Falla rápido al arrancar y explica por qué:** puerto ocupado o configuración mal escrita.
+  Durante el show, un error inesperado cierra el proceso para que el servicio lo reinicie limpio,
+  en vez de seguir en un estado desconocido.
+- **Sin frameworks en el panel.** Son unas 200 líneas de JS; React y un paso de compilación no
+  aportaban nada y hacían que la página dependiera de internet.
 
----
+## Uso
 
-## ⚙️ Configuración
+Para instalar en un evento: [docs/INSTALACION.md](docs/INSTALACION.md).
 
-Edita las constantes en `index.js` según tu red:
-
-```js
-const ONYX_IP = '192.168.1.20';    // IP del PC con Onyx
-const ONYX_UDP_PORT = 3333;        // Puerto UDP de Onyx
-const AUDIO_IP = '127.0.0.1';      // IP del PC de audio
-const AUDIO_UDP_PORT = 8080;       // Puerto UDP de audio
-```
-
----
-
-## 🖥️ Instalación y uso
+Desarrollo (Node 22 o superior):
 
 ```bash
-# 1. Instalar dependencias
 npm install
-
-# 2. Ejecutar el middleware
-node index.js
+cp loop.config.example.json loop.config.json   # ajustar IPs
+npm run dev        # corre desde el código
+npm test           # pruebas
+npm run lint       # revisión de tipos
+npm run package    # crea release/loop-vX.Y.Z-win32-x64.zip con loop.exe
 ```
 
-El servidor web del dashboard estará disponible en **http://localhost:3000**.
+`npm run package` genera un ejecutable único de Node, sin instalar nada en el PC del evento. El
+`.exe` no está firmado, así que la primera vez Windows SmartScreen puede pedir confirmación.
 
----
+## Licencia
 
-## 🧪 Test de Art-Net (standalone)
-
-Para verificar que Resolume está enviando datos de color sin iniciar el middleware completo:
-
-```bash
-node test-artnet.js
-```
-
-Muestra en consola el color RGB recibido en tiempo real con representación visual ANSI.
-
----
-
-## 📡 Protocolos utilizados
-
-| Protocolo | Dirección     | Puerto | Descripción                            |
-|-----------|---------------|--------|----------------------------------------|
-| OSC/UDP   | Entrada       | 7000   | Opacidad de capas desde Resolume       |
-| Art-Net   | Entrada       | 6454   | Color de video desde Resolume          |
-| UDP raw   | Salida        | 3333   | Comandos DMX/SQL a Onyx                |
-| UDP raw   | Salida        | 8080   | Presets de audio al PC de audio        |
-| HTTP/WS   | Entrada/Salida| 3000   | Dashboard web + WebSockets             |
-
----
-
-## 🗓️ Historial de desarrollo
-
-### v1.0.0 – Lanzamiento inicial (2026-03-14)
-- ✅ Recepción OSC de opacidad desde Resolume Arena
-- ✅ Conversión proporcional OSC → DMX (0–255)
-- ✅ Envío de comandos UDP a Onyx (`SQL 5,<value>`)
-- ✅ Comando CLEAR manual y automático al inicio
-- ✅ Barra de progreso visual en consola
-- ✅ Recepción de color vía Art-Net (puerto 6454, `reuseAddr`)
-- ✅ Emisión de color en tiempo real al dashboard via WebSocket
-- ✅ Panel de control web (Dashboard) en `localhost:3000`
-- ✅ Control de automatización de estrobos (toggle on/off)
-- ✅ Botones de flash y botones directos desde el dashboard
-- ✅ Test standalone de Art-Net (`test-artnet.js`)
-
----
-
-## 👨‍💻 Autor
-
-**Julian Osorio** – [@devmaiter](https://github.com/devmaiter)  
-Frontend Developer & AV Engineer – Bogotá, Colombia 🇨🇴
+MIT
